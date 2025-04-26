@@ -85,3 +85,32 @@ docker-build:
 
 docker-run:
 	docker run --rm -it advanced-blockchain:latest
+
+# Build CLI and Dashboard
+build-cli:
+	$(GOBUILD) -o blockchain-cli -v ./cmd/cli
+
+build-dashboard:
+	$(GOBUILD) -o blockchain-dashboard -v ./cmd/dashboard
+
+build-all: build build-cli build-dashboard
+
+# Run with dashboard
+run-with-dashboard: build
+	./$(BINARY_NAME) --dashboard --api-port=8545
+
+# Run CLI
+run-cli: build-cli
+	./blockchain-cli --node=http://localhost:8545
+
+# Run dashboard separately
+run-dashboard: build-dashboard
+	./blockchain-dashboard --port=8080
+
+# Complete demo setup (multiple terminals)
+demo:
+	@echo "Run these commands in separate terminals:"
+	@echo "1. make run-with-dashboard"
+	@echo "2. make run-cli"
+	@echo "3. Open http://localhost:8080 in browser"
+	@echo "4. Optional: Run additional nodes with different ports"

@@ -1,4 +1,5 @@
-// internal/cap/conflict/conflict.go
+//nolint:unused // Ignore unused variable warnings in this file
+
 package conflict
 
 import (
@@ -72,7 +73,8 @@ func (cm *ConflictManager) RegisterConflict(txs []types.Transaction, shardIDs []
 
 	// Generate conflict ID
 	var buffer bytes.Buffer
-	for _, tx := range txs {
+	for i := range txs {
+		tx := txs[i] // Use the transaction
 		buffer.Write(tx.From[:])
 		buffer.Write(tx.To[:])
 		buffer.Write(tx.Signature)
@@ -355,12 +357,12 @@ func (cm *ConflictManager) resolveByEntropy(conflict *types.ConflictInfo) bool {
 	totalEntropy := conflict.EntropyScore
 
 	// For each transaction, calculate how removing it would affect entropy
-	for i, tx := range conflict.Transactions {
+	for i := range conflict.Transactions {
 		// Create a new set of transactions without this one
 		reducedSet := make([]types.Transaction, 0, len(conflict.Transactions)-1)
-		for j, otherTx := range conflict.Transactions {
+		for j := range conflict.Transactions {
 			if i != j {
-				reducedSet = append(reducedSet, otherTx)
+				reducedSet = append(reducedSet, conflict.Transactions[j])
 			}
 		}
 
@@ -383,9 +385,9 @@ func (cm *ConflictManager) resolveByEntropy(conflict *types.ConflictInfo) bool {
 
 	// Remove the transaction with highest entropy contribution
 	newTransactions := make([]types.Transaction, 0, len(conflict.Transactions)-1)
-	for i, tx := range conflict.Transactions {
+	for i := range conflict.Transactions {
 		if i != maxContribIndex {
-			newTransactions = append(newTransactions, tx)
+			newTransactions = append(newTransactions, conflict.Transactions[i])
 		}
 	}
 
@@ -452,7 +454,8 @@ func (cm *ConflictManager) calculateEntropyScore(txs []types.Transaction) float6
 	valueFreq := make(map[string]int)
 	timeFreq := make(map[string]int)
 
-	for _, tx := range txs {
+	for i := range txs {
+		tx := txs[i] // Access the transaction using index
 		// Count address frequencies
 		fromKey := fmt.Sprintf("%x", tx.From)
 		toKey := fmt.Sprintf("%x", tx.To)

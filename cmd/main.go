@@ -12,6 +12,7 @@ import (
 	"github.com/SoberSalman/advanced-blockchain/internal/amf/sharding"
 	"github.com/SoberSalman/advanced-blockchain/internal/amf/synchronization"
 	"github.com/SoberSalman/advanced-blockchain/internal/amf/verification"
+	"github.com/SoberSalman/advanced-blockchain/internal/api"
 	"github.com/SoberSalman/advanced-blockchain/internal/bft/defense"
 	bftVerification "github.com/SoberSalman/advanced-blockchain/internal/bft/verification"
 	"github.com/SoberSalman/advanced-blockchain/internal/blockchain/block"
@@ -20,6 +21,7 @@ import (
 	"github.com/SoberSalman/advanced-blockchain/internal/cap/consistency"
 	"github.com/SoberSalman/advanced-blockchain/internal/consensus/authentication"
 	"github.com/SoberSalman/advanced-blockchain/internal/consensus/hybrid"
+	"github.com/SoberSalman/advanced-blockchain/internal/dashboard"
 	"github.com/SoberSalman/advanced-blockchain/internal/network/p2p"
 
 	"github.com/rs/zerolog"
@@ -37,6 +39,8 @@ type Config struct {
 	MinerEnabled     bool
 	PoWDifficulty    int
 	ConsensusTimeout time.Duration
+	APIPort          int
+	EnableDashboard  bool
 }
 
 func main() {
@@ -63,6 +67,21 @@ func main() {
 	components, err := initializeComponents(ctx, config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to initialize blockchain components")
+	}
+
+	// Start API server if enabled
+	if config.APIPort > 0 {
+		apiServer := api.NewAPIServer(components, config)
+		apiServer.Start(config.APIPort)
+		log.Info().Int("port", config.APIPort).Msg("API server started")
+	}
+
+	// Start dashboard if enabled
+	if config.EnableDashboard {
+		dashboardPort := config.APIPort + 1
+		dashboardServer := dashboard.NewDashboardServer(components, config, config.APIPort)
+		dashboardServer.Start(dashboardPort)
+		log.Info().Int("port", dashboardPort).Msg("Dashboard started")
 	}
 
 	// Setup shutdown handler
@@ -95,6 +114,8 @@ func parseFlags() *Config {
 	flag.BoolVar(&config.ValidatorEnabled, "validator", false, "Enable validator mode")
 	flag.BoolVar(&config.MinerEnabled, "miner", false, "Enable miner mode")
 	flag.IntVar(&config.PoWDifficulty, "difficulty", 4, "PoW difficulty level")
+	flag.IntVar(&config.APIPort, "api-port", 8545, "API server port")
+	flag.BoolVar(&config.EnableDashboard, "dashboard", false, "Enable web dashboard")
 
 	// Parse bootstrap nodes as a comma-separated list
 	var bootstrapNodesStr string
@@ -138,32 +159,6 @@ func setupLogging(logLevel string) {
 
 	// Output to console
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-}
-
-type SystemComponents struct {
-	// AMF components
-	ShardManager  *sharding.ShardManager
-	ProofVerifier *verification.ProofVerifier
-	SyncManager   *synchronization.SyncManager
-
-	// BFT components
-	DefenseManager      *defense.DefenseManager
-	VerificationManager *bftVerification.VerificationManager
-
-	// CAP components
-	ConsistencyOrchestrator *consistency.ConsistencyOrchestrator
-	ConflictManager         *conflict.ConflictManager
-
-	// Consensus components
-	ConsensusEngine *hybrid.HybridConsensus
-	AuthManager     *authentication.AuthManager
-
-	// Blockchain components
-	BlockManager *block.BlockManager
-	StateManager *state.StateManager
-
-	// Network components
-	P2PNode *p2p.Node
 }
 
 func initializeComponents(ctx context.Context, config *Config) (*SystemComponents, error) {
@@ -256,6 +251,10 @@ func generateRandomNodeID() string {
 }
 
 func parseBootstrapNodes(bootstrapNodesStr string) []string {
-	// TODO: Parse comma-separated bootstrap nodes
+	// Simple implementation - parse comma-separated bootstrap nodes
+	// You can improve this to properly parse comma-separated addresses
+	if bootstrapNodesStr == "" {
+		return []string{}
+	}
 	return []string{bootstrapNodesStr}
 }

@@ -154,14 +154,14 @@ func (vm *VerificationManager) GenerateZKProof(request ZKProofRequest) (*ZKProof
 }
 
 // VerifyZKProof verifies a zero-knowledge proof
-func (vm *VerificationManager) VerifyZKProof(response ZKProofResponse, witness []byte, difficulty int) bool {
+func (vm *VerificationManager) VerifyZKProof(response ZKProofResponse, _ []byte, difficulty int) bool {
 	// For our simplified approach, recreate the hash using the provided proof, statement,
 	// and witness, then check if it meets the difficulty requirement
 
 	// In a real ZK system, the witness would not be needed for verification
 	// This is simplified for demonstration
 
-	data := append(response.PublicData, append(witness, response.Proof...)...)
+	data := append(response.PublicData, response.Proof...)
 	resultHash := sha256.Sum256(data)
 
 	return countLeadingZeroBits(resultHash[:]) >= difficulty

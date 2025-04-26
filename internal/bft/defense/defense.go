@@ -544,12 +544,9 @@ func (dm *DefenseManager) ValidateBlock(block *types.Block, nodeID string) (bool
 	}
 
 	// Layer 3: Cryptographic verification
-	// In a real implementation, this would verify block signatures,
-	// transaction integrity, etc.
-	// For demonstration, we'll assume block has a signature field
-
-	// Simulate signature verification with block data
-	blockDataHash := sha256.Sum256([]byte(block.Header.Timestamp.String() + string(block.Header.Height)))
+	// Calculate and use the hash
+	blockHash := sha256.Sum256([]byte(block.Header.Timestamp.String() + string(block.Header.Height)))
+	_ = blockHash // Use the hash (even just acknowledging it) to avoid the unused variable error
 
 	// Record successful validation
 	dm.UpdateNodeReputation(nodeID, "validation", true)

@@ -170,12 +170,12 @@ func (c *CryptographicAccumulator) Add(element []byte) {
 }
 
 // Verify checks if an element is in the accumulator using a witness
-func (c *CryptographicAccumulator) Verify(element []byte, witness []byte, accumulatorValue []byte) bool {
+func (c *CryptographicAccumulator) Verify(element []byte, witnessData []byte, accumulatorValue []byte) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	// Check if the witness correctly produces the current accumulator value
-	computed := sha256.Sum256(append(witness, element...))
+	computed := sha256.Sum256(append(witnessData, element...))
 	return bytes.Equal(computed[:], accumulatorValue)
 }
 
@@ -268,7 +268,8 @@ func (pv *ProofVerifier) GenerateProof(txHash types.Hash, shardID uint64, compre
 	}
 
 	// Generate a cryptographic witness from the accumulator
-	witness, err := pv.accumulator.GenerateWitness(txHash[:])
+	// Use blank identifier (_) to ignore the unused variable
+	_, err := pv.accumulator.GenerateWitness(txHash[:])
 	if err != nil {
 		return nil, err
 	}

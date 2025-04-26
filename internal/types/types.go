@@ -148,6 +148,7 @@ type MerkleProof struct {
 
 // NetworkStats represents network statistics for CAP optimization
 type NetworkStats struct {
+	ShardID              uint64
 	PartitionProbability float64
 	AverageLatency       time.Duration
 	NodeCount            uint64
